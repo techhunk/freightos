@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#080c14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>FreightOS</title>
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;FreightOS&quot;,&quot;short_name&quot;:&quot;FreightOS&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%23080c14&quot;,&quot;theme_color&quot;:&quot;%23080c14&quot;}">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   DESIGN SYSTEM — Industrial Nautical Dark Theme
+═══════════════════════════════════════════════ */
+:root {
+  --ink:      #080c14;
+  --deep:     #0d1220;
+  --hull:     #121826;
+  --deck:     #1c2438;
+  --rail:     #263048;
+  --mist:     #344060;
+  --steel:    #4a5a78;
+  --fog:      #6b7a96;
+  --haze:     #8a98b4;
+  --cloud:    #c0cce0;
+  --white:    #e8edf5;
+
+  --cyan:     #00e5ff;
+  --cyan-dim: rgba(0,229,255,0.12);
+  --gold:     #ffc947;
+  --gold-dim: rgba(255,201,71,0.12);
+  --green:    #4dff91;
+  --green-dim:rgba(77,255,145,0.1);
+  --red:      #ff4d6a;
+  --red-dim:  rgba(255,77,106,0.12);
+  --purple:   #b86fff;
+
+  --r:        10px;
+  --r-lg:     16px;
+  --shadow:   0 8px 32px rgba(0,0,0,0.5);
+  --glow-c:   0 0 20px rgba(0,229,255,0.2);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--ink);
+  color: var(--white);
+  font-family: 'Figtree', sans-serif;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── TEXTURE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.4;
+}
+
+/* ═══════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════ */
+.app { display: flex; height: 100vh; position: relative; z-index: 1; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 256px; min-width: 256px;
+  background: var(--deep);
+  border-right: 1px solid var(--rail);
+  display: flex; flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  z-index: 200;
+  position: relative;
+}
+.sidebar::after {
+  content: '';
+  position: absolute; top: 0; right: 0; bottom: 0; width: 1px;
+  background: linear-gradient(to bottom, transparent, var(--cyan) 30%, var(--cyan) 70%, transparent);
+  opacity: 0.15;
+}
+
+.logo-area {
+  padding: 22px 20px 18px;
+  border-bottom: 1px solid var(--rail);
+  display: flex; align-items: center; gap: 12px;
+}
+.logo-ship {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--cyan-dim), var(--cyan-dim));
+  border: 1px solid rgba(0,229,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+  box-shadow: 0 0 16px rgba(0,229,255,0.15);
+}
+.logo-text { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--white); letter-spacing: 1px; }
+.logo-sub { font-size: 10px; color: var(--fog); letter-spacing: 2px; text-transform: uppercase; margin-top: 1px; font-family: 'JetBrains Mono', monospace; }
+
+/* Company Switch */
+.co-switch {
+  margin: 14px 16px;
+  background: var(--hull);
+  border: 1px solid var(--rail);
+  border-radius: var(--r);
+  padding: 4px;
+  display: flex; gap: 4px;
+}
+.co-btn {
+  flex: 1; padding: 7px 6px; text-align: center;
+  font-size: 11px; font-weight: 700; border-radius: 7px;
+  cursor: pointer; transition: all 0.2s;
+  color: var(--fog); letter-spacing: 0.5px;
+  font-family: 'Syne', sans-serif;
+  user-select: none;
+}
+.co-btn.active {
+  background: linear-gradient(135deg, rgba(0,229,255,0.2), rgba(0,229,255,0.08));
+  color: var(--cyan);
+  border: 1px solid rgba(0,229,255,0.3);
+  box-shadow: var(--glow-c);
+}
+
+/* Nav */
+.nav { flex: 1; overflow-y: auto; padding: 8px 0 16px; }
+.nav::-webkit-scrollbar { width: 0; }
+.nav-sect {
+  padding: 14px 20px 6px;
+  font-size: 9px; color: var(--mist);
+  letter-spacing: 2.5px; text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace; font-weight: 600;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 20px; cursor: pointer;
+  transition: all 0.15s; font-size: 13.5px;
+  color: var(--fog); position: relative;
+  font-weight: 500; user-select: none;
+}
+.nav-item:hover { color: var(--cloud); background: rgba(255,255,255,0.03); }
+.nav-item.active {
+  color: var(--cyan);
+  background: linear-gradient(to right, var(--cyan-dim), transparent);
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 15%; bottom: 15%;
+  width: 3px; background: var(--cyan); border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 8px var(--cyan);
+}
+.nav-icon { font-size: 17px; width: 22px; text-align: center; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto; background: var(--red); color: #fff;
+  font-size: 10px; padding: 2px 7px; border-radius: 20px;
+  font-weight: 700; font-family: 'JetBrains Mono', monospace;
+}
+
+.sync-status {
+  margin: 0 16px 14px;
+  padding: 8px 12px;
+  background: var(--hull); border: 1px solid var(--rail); border-radius: 8px;
+  font-size: 11px; color: var(--fog);
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; transition: all 0.3s; }
+.sync-dot.online { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+.sync-dot.offline { background: var(--red); }
+.sync-dot.syncing { background: var(--gold); animation: pulse 0.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── MAIN ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--ink); }
+
+.topbar {
+  background: var(--deep);
+  border-bottom: 1px solid var(--rail);
+  height: 62px; display: flex; align-items: center;
+  padding: 0 24px; gap: 14px; flex-shrink: 0;
+}
+.menu-btn {
+  display: none; background: none; border: none;
+  color: var(--fog); font-size: 22px; cursor: pointer; padding: 4px; flex-shrink: 0;
+}
+.topbar-title {
+  font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700;
+  flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.search-box {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--hull); border: 1px solid var(--rail);
+  border-radius: 9px; padding: 8px 14px; width: 240px;
+  transition: border-color 0.2s;
+}
+.search-box:focus-within { border-color: rgba(0,229,255,0.4); }
+.search-box input {
+  background: none; border: none; color: var(--white);
+  font-size: 13px; outline: none; width: 100%; font-family: inherit;
+}
+.search-box input::placeholder { color: var(--mist); }
+.search-icon { color: var(--mist); font-size: 14px; flex-shrink: 0; }
+
+.btn {
+  padding: 9px 18px; border-radius: 9px;
+  font-size: 13px; font-weight: 700; cursor: pointer; border: none;
+  transition: all 0.15s; font-family: 'Syne', sans-serif;
+  letter-spacing: 0.3px; white-space: nowrap;
+}
+.btn-primary {
+  background: var(--cyan); color: var(--ink);
+  box-shadow: 0 0 20px rgba(0,229,255,0.3);
+}
+.btn-primary:hover { background: #33eaff; box-shadow: 0 0 28px rgba(0,229,255,0.5); transform: translateY(-1px); }
+.btn-ghost { background: transparent; border: 1px solid var(--rail); color: var(--cloud); }
+.btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #ff6680; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-xs { padding: 4px 9px; font-size: 11px; border-radius: 6px; }
+
+/* ── CONTENT ── */
+.content { flex: 1; overflow-y: auto; padding: 24px; scroll-behavior: smooth; }
+.content::-webkit-scrollbar { width: 6px; }
+.content::-webkit-scrollbar-track { background: transparent; }
+.content::-webkit-scrollbar-thumb { background: var(--mist); border-radius: 3px; }
+
+/* ── VIEWS ── */
+.view { display: none; animation: fadeIn 0.2s ease; }
+.view.active { display: block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── KPI CARDS ── */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.kpi {
+  background: var(--hull); border: 1px solid var(--rail);
+  border-radius: var(--r-lg); padding: 20px 18px;
+  position: relative; overflow: hidden; cursor: default;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.kpi.c::before { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+.kpi.g::before { background: var(--green); box-shadow: 0 0 10px var(--green); }
+.kpi.o::before { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+.kpi.r::before { background: var(--red); }
+.kpi-label { font-size: 10px; color: var(--fog); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; font-family: 'JetBrains Mono', monospace; }
+.kpi-val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+.kpi.c .kpi-val { color: var(--cyan); }
+.kpi.g .kpi-val { color: var(--green); }
+.kpi.o .kpi-val { color: var(--gold); }
+.kpi.r .kpi-val { color: var(--red); }
+.kpi-sub { font-size: 12px; color: var(--fog); }
+.kpi-glow {
+  position: absolute; right: -20px; bottom: -20px;
+  width: 80px; height: 80px; border-radius: 50%; opacity: 0.06; filter: blur(20px);
+}
+.kpi.c .kpi-glow { background: var(--cyan); }
+.kpi.g .kpi-glow { background: var(--green); }
+.kpi.o .kpi-glow { background: var(--gold); }
+.kpi.r .kpi-glow { background: var(--red); }
+
+/* ── CARD / TABLE ── */
+.card {
+  background: var(--hull); border: 1px solid var(--rail);
+  border-radius: var(--r-lg); overflow: hidden; margin-bottom: 20px;
+}
+.card-head {
+  padding: 16px 20px; border-bottom: 1px solid var(--rail);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap;
+}
+.card-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--cloud); }
+.table-scroll { overflow-x: auto; }
+.table-scroll::-webkit-scrollbar { height: 4px; }
+.table-scroll::-webkit-scrollbar-thumb { background: var(--mist); border-radius: 2px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  background: var(--deck); padding: 11px 16px;
+  text-align: left; font-size: 9.5px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--steel); font-weight: 700;
+  border-bottom: 1px solid var(--rail); white-space: nowrap;
+  font-family: 'JetBrains Mono', monospace;
+}
+td {
+  padding: 12px 16px; border-bottom: 1px solid rgba(38,48,72,0.6);
+  vertical-align: middle; white-space: nowrap; color: var(--cloud);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(0,229,255,0.025); }
+.mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.profit-pos { color: var(--green); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+.profit-neg { color: var(--red); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+/* ── BADGES ── */
+.badge { padding: 3px 9px; border-radius: 5px; font-size: 11px; font-weight: 700; display: inline-block; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.3px; }
+.b-paid   { background: var(--green-dim); color: var(--green); border: 1px solid rgba(77,255,145,0.2); }
+.b-unpaid { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(255,77,106,0.2); }
+.b-pend   { background: var(--gold-dim);  color: var(--gold);  border: 1px solid rgba(255,201,71,0.2); }
+.b-air    { background: var(--cyan-dim);  color: var(--cyan);  border: 1px solid rgba(0,229,255,0.2); }
+.b-sea    { background: rgba(184,111,255,0.1); color: var(--purple); border: 1px solid rgba(184,111,255,0.2); }
+.b-courier{ background: var(--green-dim); color: var(--green); border: 1px solid rgba(77,255,145,0.2); }
+.b-land   { background: var(--gold-dim);  color: var(--gold);  border: 1px solid rgba(255,201,71,0.2); }
+
+/* ── ICON BTNS ── */
+.ibtns { display: flex; gap: 6px; }
+.ibtn {
+  background: none; border: 1px solid var(--rail); color: var(--fog);
+  padding: 5px 9px; border-radius: 6px; cursor: pointer; font-size: 13px;
+  transition: all 0.15s;
+}
+.ibtn:hover { border-color: var(--cyan); color: var(--cyan); }
+.ibtn.del:hover { border-color: var(--red); color: var(--red); }
+
+/* ── FILTERS ── */
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.ftab {
+  padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 600;
+  cursor: pointer; border: 1px solid var(--rail); color: var(--fog);
+  transition: all 0.15s; user-select: none; font-family: 'Syne', sans-serif;
+}
+.ftab:hover { border-color: var(--cyan); color: var(--cyan); }
+.ftab.active { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+
+/* ── FORM ── */
+.form-wrap { max-width: 780px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.fg { display: flex; flex-direction: column; gap: 7px; }
+.fg.full { grid-column: 1 / -1; }
+.fg label { font-size: 10px; color: var(--fog); letter-spacing: 1px; text-transform: uppercase; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.fg input, .fg select, .fg textarea {
+  background: var(--deck); border: 1px solid var(--rail);
+  border-radius: 9px; color: var(--white); padding: 11px 14px;
+  font-size: 13.5px; font-family: 'Figtree', sans-serif; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s; width: 100%;
+}
+.fg input:focus, .fg select:focus, .fg textarea:focus {
+  border-color: rgba(0,229,255,0.5);
+  box-shadow: 0 0 0 3px rgba(0,229,255,0.08);
+}
+.fg select option { background: var(--deck); }
+.fg textarea { resize: vertical; min-height: 80px; }
+
+.profit-live {
+  background: var(--deck); border: 1px solid var(--rail);
+  border-radius: 10px; padding: 16px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+}
+.pl-item .pl-label { font-size: 10px; color: var(--fog); margin-bottom: 5px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px; }
+.pl-item .pl-val { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 600; }
+
+/* ── LEDGER ── */
+.ledger-item { margin-bottom: 12px; }
+.ledger-head-row {
+  background: var(--hull); border: 1px solid var(--rail);
+  border-radius: var(--r); padding: 14px 18px;
+  display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer; transition: border-color 0.2s;
+}
+.ledger-head-row:hover { border-color: rgba(0,229,255,0.3); }
+.ledger-head-row.open { border-radius: var(--r) var(--r) 0 0; border-bottom-color: transparent; border-color: rgba(0,229,255,0.3); }
+.ledger-name-txt { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+.ledger-bal { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; }
+.ledger-body-rows {
+  display: none; background: var(--deep);
+  border: 1px solid rgba(0,229,255,0.3); border-top: none;
+  border-radius: 0 0 var(--r) var(--r);
+}
+.ledger-body-rows.open { display: block; }
+.ledger-row { display: flex; padding: 10px 18px; border-bottom: 1px solid var(--rail); font-size: 12.5px; gap: 10px; align-items: center; }
+.ledger-row:last-child { border-bottom: none; }
+.l-date { color: var(--fog); width: 85px; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.l-desc { flex: 1; color: var(--cloud); }
+.l-amt { font-family: 'JetBrains Mono', monospace; text-align: right; flex-shrink: 0; }
+.l-total { background: var(--deck); font-weight: 700; }
+
+/* ── MODAL ── */
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(5,8,16,0.85);
+  z-index: 1000; display: flex; align-items: center; justify-content: center;
+  padding: 16px; backdrop-filter: blur(6px);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.modal-bg.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--hull); border: 1px solid var(--rail);
+  border-radius: 18px; width: 100%; max-width: 680px;
+  max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow);
+  transform: translateY(16px) scale(0.98); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.modal-bg.open .modal { transform: translateY(0) scale(1); }
+.modal-head {
+  padding: 22px 26px 18px; border-bottom: 1px solid var(--rail);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 800; }
+.modal-x { background: none; border: none; color: var(--fog); font-size: 22px; cursor: pointer; }
+.modal-x:hover { color: var(--red); }
+.modal-body { padding: 22px 26px; }
+.modal-foot { padding: 18px 26px; border-top: 1px solid var(--rail); display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* ── DETAIL GRID ── */
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+.di .di-label { font-size: 10px; color: var(--fog); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; }
+.di .di-val { font-size: 14px; color: var(--white); font-weight: 500; }
+.finance-strip {
+  background: var(--deep); border: 1px solid var(--rail); border-radius: 12px;
+  padding: 18px; display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 16px;
+}
+.fs-item .fs-l { font-size: 10px; color: var(--fog); margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
+.fs-item .fs-v { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; }
+
+/* ── TABS ── */
+.tabs { display: flex; background: var(--hull); border-radius: 10px; padding: 4px; border: 1px solid var(--rail); width: fit-content; margin-bottom: 20px; gap: 4px; }
+.tab { padding: 7px 16px; border-radius: 7px; font-size: 13px; cursor: pointer; color: var(--fog); transition: all 0.15s; font-weight: 600; font-family: 'Syne', sans-serif; user-select: none; }
+.tab.active { background: var(--deck); color: var(--white); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  background: var(--hull); border: 1px solid var(--rail);
+  border-radius: 12px; padding: 13px 20px; font-size: 13.5px;
+  box-shadow: var(--shadow); display: flex; align-items: center; gap: 10px;
+  transform: translateY(80px) scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  max-width: 340px; font-weight: 500;
+}
+.toast.show { transform: translateY(0) scale(1); opacity: 1; }
+.toast.ok { border-color: rgba(77,255,145,0.4); }
+.toast.err { border-color: rgba(255,77,106,0.4); }
+.toast.info { border-color: rgba(0,229,255,0.4); }
+
+/* ── LOADING ── */
+.loading-bar {
+  position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 9998;
+  background: linear-gradient(90deg, var(--cyan), var(--purple), var(--cyan));
+  background-size: 200%;
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.3s; animation: loadmove 1s linear infinite;
+  display: none;
+}
+.loading-bar.show { display: block; transform: scaleX(1); }
+@keyframes loadmove { 0%{background-position:0%} 100%{background-position:200%} }
+
+/* ── MOBILE OVERLAY ── */
+.mob-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(5,8,16,0.7); z-index: 199;
+  backdrop-filter: blur(2px);
+}
+
+/* ── EMPTY ── */
+.empty { text-align: center; padding: 60px 20px; color: var(--steel); }
+.empty-icon { font-size: 44px; margin-bottom: 14px; opacity: 0.5; }
+.empty p { font-size: 14px; }
+
+/* ── SECTION HEADER ── */
+.sec-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.sec-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--cloud); }
+
+/* ── DASH GRID ── */
+.dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+
+/* ── STATS ── */
+.stat-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+.stat-pill { background: var(--hull); border: 1px solid var(--rail); border-radius: 8px; padding: 8px 14px; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+.sdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── SETUP BANNER ── */
+.setup-banner {
+  background: linear-gradient(135deg, rgba(255,201,71,0.1), rgba(255,201,71,0.05));
+  border: 1px solid rgba(255,201,71,0.3); border-radius: var(--r-lg);
+  padding: 20px 24px; margin-bottom: 24px;
+  display: flex; align-items: flex-start; gap: 16px;
+}
+.setup-banner .icon { font-size: 28px; flex-shrink: 0; margin-top: 2px; }
+.setup-banner h3 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--gold); margin-bottom: 6px; }
+.setup-banner p { font-size: 13px; color: var(--haze); line-height: 1.6; margin-bottom: 10px; }
+.url-input { display: flex; gap: 8px; flex-wrap: wrap; }
+.url-input input { background: var(--deck); border: 1px solid rgba(255,201,71,0.3); border-radius: 8px; color: var(--white); padding: 9px 14px; font-size: 13px; font-family: 'JetBrains Mono', monospace; outline: none; flex: 1; min-width: 200px; }
+.url-input input:focus { border-color: var(--gold); }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .sidebar { position: fixed; left:0; top:0; bottom:0; transform:translateX(-100%); }
+  .sidebar.open { transform:translateX(0); }
+  .mob-overlay { display:block; opacity:0; pointer-events:none; transition:opacity 0.3s; }
+  .mob-overlay.open { opacity:1; pointer-events:all; }
+  .menu-btn { display:block; }
+  .search-box { display:none; }
+  .topbar { padding:0 14px; height:56px; }
+  .content { padding:14px; }
+  .kpi-row { grid-template-columns:1fr 1fr; gap:10px; }
+  .kpi-val { font-size:17px; }
+  .form-grid { grid-template-columns:1fr; }
+  .detail-grid { grid-template-columns:1fr; }
+  .finance-strip { grid-template-columns:1fr 1fr; }
+  .profit-live { grid-template-columns:1fr; }
+  .dash-grid { grid-template-columns:1fr; }
+  .modal { max-height:95vh; border-radius:14px; }
+  td,th { padding:9px 11px; font-size:12px; }
+  .btn-primary span { display:none; }
+}
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loadBar"></div>
+
+<div class="app">
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo-area">
+    <div class="logo-ship">🚢</div>
+    <div>
+      <div class="logo-text">FreightOS</div>
+      <div class="logo-sub">Cargo · Finance</div>
+    </div>
+  </div>
+
+  <div class="co-switch">
+    <div class="co-btn active" id="coSN" onclick="switchCo('SN')">SN Global</div>
+    <div class="co-btn" id="coCadence" onclick="switchCo('Cadence')">Cadence</div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-sect">Operations</div>
+    <div class="nav-item active" onclick="go('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="go('shipments')"><span class="nav-icon">📦</span> Shipments <span class="nav-badge" id="pendBadge">0</span></div>
+    <div class="nav-item" onclick="go('newjob')"><span class="nav-icon">➕</span> New Job</div>
+    <div class="nav-sect">Finance</div>
+    <div class="nav-item" onclick="go('ledger')"><span class="nav-icon">📒</span> Ledger</div>
+    <div class="nav-item" onclick="go('invoices')"><span class="nav-icon">🧾</span> Invoices</div>
+    <div class="nav-item" onclick="go('suppliers')"><span class="nav-icon">🏭</span> Suppliers</div>
+    <div class="nav-sect">Analytics</div>
+    <div class="nav-item" onclick="go('reports')"><span class="nav-icon">📈</span> P&L Report</div>
+    <div class="nav-sect">System</div>
+    <div class="nav-item" onclick="go('settings')"><span class="nav-icon">⚙️</span> Settings & Setup</div>
+  </nav>
+
+  <div class="sync-status">
+    <div class="sync-dot offline" id="syncDot"></div>
+    <span id="syncLabel">Not connected</span>
+  </div>
+</aside>
+
+<div class="mob-overlay" id="mobOverlay" onclick="closeSidebar()"></div>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="topbar-title" id="topTitle">Dashboard</div>
+    <div class="search-box">
+      <span class="search-icon">⌕</span>
+      <input type="text" placeholder="Search jobs..." id="searchInp" oninput="onSearch(this.value)">
+    </div>
+    <button class="btn btn-primary" onclick="go('newjob')">+ <span>New Job</span></button>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="view active" id="view-dashboard">
+      <div id="setupBanner"></div>
+      <div class="kpi-row" id="kpiRow"></div>
+      <div class="dash-grid">
+        <div>
+          <div class="sec-head"><span class="sec-title">Recent Shipments</span><button class="btn btn-ghost btn-sm" onclick="go('shipments')">View All →</button></div>
+          <div class="card"><div class="table-scroll"><table><thead><tr><th>Route</th><th>Type</th><th>Status</th><th>Profit</th></tr></thead><tbody id="recentTb"></tbody></table></div></div>
+        </div>
+        <div>
+          <div class="sec-head"><span class="sec-title">Outstanding Payments</span></div>
+          <div id="outstandingList"></div>
+        </div>
+      </div>
+      <div class="sec-head"><span class="sec-title">Supplier Overview</span></div>
+      <div class="card"><div class="table-scroll"><table><thead><tr><th>Supplier / Agent</th><th>Jobs</th><th>Total Cost</th><th>Total Profit</th></tr></thead><tbody id="supSumTb"></tbody></table></div></div>
+    </div>
+
+    <!-- ═══ SHIPMENTS ═══ -->
+    <div class="view" id="view-shipments">
+      <div class="card">
+        <div class="card-head">
+          <div class="filters" id="modeFilters">
+            <div class="ftab active" onclick="fMode(this,'all')">All</div>
+            <div class="ftab" onclick="fMode(this,'AIR')">✈ Air</div>
+            <div class="ftab" onclick="fMode(this,'SEA')">🚢 Sea</div>
+            <div class="ftab" onclick="fMode(this,'COURIER')">📦 Courier</div>
+            <div class="ftab" onclick="fMode(this,'LAND')">🚛 Land</div>
+          </div>
+          <div class="filters" id="statusFilters">
+            <div class="ftab active" onclick="fStatus(this,'all')">All</div>
+            <div class="ftab" onclick="fStatus(this,'Paid')">Paid</div>
+            <div class="ftab" onclick="fStatus(this,'Unpaid')">Unpaid</div>
+            <div class="ftab" onclick="fStatus(this,'Pending')">Pending</div>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Invoice</th><th>Date</th><th>Route</th><th>Mode</th><th>Cost</th><th>Sell</th><th>Comm</th><th>Profit</th><th>Supplier</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="shipsTb"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ NEW JOB ═══ -->
+    <div class="view" id="view-newjob">
+      <div class="form-wrap">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+          <button class="btn btn-ghost btn-sm" onclick="go('shipments')">← Back</button>
+          <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;" id="formHeading">New Shipment Job</h2>
+        </div>
+        <div class="card" style="padding:26px;">
+          <div class="form-grid" id="formGrid">
+            <div class="fg full"><label>Shipment Description / Route</label><input type="text" id="fRoute" placeholder="e.g. USA to Dubai 115kg · Chemical drums"></div>
+            <div class="fg"><label>Mode of Transport</label><select id="fMode"><option>AIR</option><option>SEA</option><option>COURIER</option><option>LAND</option></select></div>
+            <div class="fg"><label>Date</label><input type="date" id="fDate"></div>
+            <div class="fg"><label>AWB / BL Number</label><input type="text" id="fAWB" placeholder="Tracking / reference number"></div>
+            <div class="fg"><label>Invoice Number</label><input type="text" id="fInvoice" placeholder="e.g. INV64531"></div>
+            <div class="fg"><label>Port of Loading (POL)</label><input type="text" id="fPOL" placeholder="e.g. USA, China, UK"></div>
+            <div class="fg"><label>Port of Discharge (POD)</label><input type="text" id="fPOD" placeholder="e.g. DXB, CKY, JEA"></div>
+            <div class="fg"><label>ETD (Departure Date)</label><input type="date" id="fETD"></div>
+            <div class="fg"><label>ETA (Arrival Date)</label><input type="date" id="fETA"></div>
+            <div class="fg"><label>Supplier / Agent</label><input type="text" id="fSupplier" placeholder="e.g. Meridian, CSS, Larheza"></div>
+            <div class="fg"><label>Customer</label><input type="text" id="fCustomer" placeholder="Customer name"></div>
+
+            <div class="fg full" style="border-top:1px solid var(--rail);padding-top:18px;margin-top:4px;">
+              <label style="font-size:11px;color:var(--cyan);letter-spacing:2px;">── FINANCIALS ────────────────────────</label>
+            </div>
+            <div class="fg"><label>Cost Price (AED)</label><input type="number" id="fCost" placeholder="0.00" oninput="liveCalc()"></div>
+            <div class="fg"><label>Selling Price (AED)</label><input type="number" id="fSell" placeholder="0.00" oninput="liveCalc()"></div>
+            <div class="fg"><label>Commission (AED)</label><input type="number" id="fComm" placeholder="0.00" oninput="liveCalc()"></div>
+            <div class="fg"><label>BOE / DO Charges (AED)</label><input type="number" id="fBOE" placeholder="0.00" oninput="liveCalc()"></div>
+            <div class="fg"><label>Duty (AED)</label><input type="number" id="fDuty" placeholder="0.00" oninput="liveCalc()"></div>
+            <div class="fg"><label>TRT / Delivery (AED)</label><input type="number" id="fTRT" placeholder="0.00" oninput="liveCalc()"></div>
+
+            <div class="fg full">
+              <label>Live Profit Calculator</label>
+              <div class="profit-live">
+                <div class="pl-item"><div class="pl-label">NET PROFIT</div><div class="pl-val" id="plProfit" style="color:var(--green)">AED 0</div></div>
+                <div class="pl-item"><div class="pl-label">MARGIN %</div><div class="pl-val" id="plMargin" style="color:var(--gold)">0.0%</div></div>
+                <div class="pl-item"><div class="pl-label">TOTAL COST</div><div class="pl-val" id="plCost" style="color:var(--fog)">AED 0</div></div>
+              </div>
+            </div>
+
+            <div class="fg"><label>Payment Status</label><select id="fStatus"><option>Pending</option><option>Paid</option><option>Unpaid</option><option>Part Paid</option></select></div>
+            <div class="fg"></div>
+            <div class="fg full"><label>Remarks / Notes</label><textarea id="fRemarks" placeholder="Extra notes, special instructions, references..."></textarea></div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:22px;justify-content:flex-end;flex-wrap:wrap;">
+            <button class="btn btn-ghost" onclick="clearForm()">Clear</button>
+            <button class="btn btn-primary" id="saveBtn" onclick="doSave()">Save Shipment</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ LEDGER ═══ -->
+    <div class="view" id="view-ledger">
+      <div class="tabs">
+        <div class="tab active" onclick="switchLedger(this,'supplier')">Supplier Ledger</div>
+        <div class="tab" onclick="switchLedger(this,'customer')">Customer Ledger</div>
+      </div>
+      <div id="supLedger"></div>
+      <div id="custLedger" style="display:none;"></div>
+    </div>
+
+    <!-- ═══ INVOICES ═══ -->
+    <div class="view" id="view-invoices">
+      <div class="stat-pills" id="invStats"></div>
+      <div class="card"><div class="table-scroll"><table>
+        <thead><tr><th>Invoice #</th><th>Date</th><th>Customer</th><th>Route</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="invTb"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ═══ SUPPLIERS ═══ -->
+    <div class="view" id="view-suppliers">
+      <div class="card"><div class="table-scroll"><table>
+        <thead><tr><th>Supplier / Agent</th><th>Jobs</th><th>Total Paid</th><th>Outstanding</th><th>Last Job</th></tr></thead>
+        <tbody id="supTb"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ═══ REPORTS ═══ -->
+    <div class="view" id="view-reports">
+      <div class="kpi-row" id="rptKPIs"></div>
+      <div class="dash-grid">
+        <div>
+          <div class="sec-head"><span class="sec-title">Top Profitable Jobs</span></div>
+          <div class="card"><div class="table-scroll"><table><thead><tr><th>Route</th><th>Sell</th><th>Profit</th><th>Margin</th></tr></thead><tbody id="topProfTb"></tbody></table></div></div>
+        </div>
+        <div>
+          <div class="sec-head"><span class="sec-title">Supplier Performance</span></div>
+          <div class="card"><div class="table-scroll"><table><thead><tr><th>Supplier</th><th>Jobs</th><th>Revenue</th><th>Profit</th></tr></thead><tbody id="supPerfTb"></tbody></table></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SETTINGS ═══ -->
+    <div class="view" id="view-settings">
+      <div style="max-width:680px;">
+        <div class="setup-banner">
+          <div class="icon">🔗</div>
+          <div style="flex:1;">
+            <h3>Connect to Google Sheets (Free Backend)</h3>
+            <p>Paste your Google Apps Script Web App URL below to sync all data to Google Sheets. Your data will be accessible from any device — phone or PC — instantly.</p>
+            <div class="url-input">
+              <input type="text" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/YOUR_ID/exec" value="">
+              <button class="btn btn-primary" onclick="saveScriptUrl()">Connect</button>
+              <button class="btn btn-ghost" onclick="testConnection()">Test</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:24px;margin-bottom:20px;">
+          <div class="card-title" style="margin-bottom:18px;">📋 Step-by-Step Setup Guide</div>
+          <div style="font-size:13.5px;color:var(--haze);line-height:1.9;">
+            <div style="margin-bottom:14px;padding:12px;background:var(--deck);border-radius:8px;">
+              <strong style="color:var(--cyan);">Step 1.</strong> Go to <a href="https://sheets.google.com" target="_blank" style="color:var(--cyan);">sheets.google.com</a> → Create a new blank spreadsheet → Name it <strong style="color:var(--white);">"FreightOS Data"</strong>
+            </div>
+            <div style="margin-bottom:14px;padding:12px;background:var(--deck);border-radius:8px;">
+              <strong style="color:var(--cyan);">Step 2.</strong> In the spreadsheet, click <strong style="color:var(--white);">Extensions → Apps Script</strong>
+            </div>
+            <div style="margin-bottom:14px;padding:12px;background:var(--deck);border-radius:8px;">
+              <strong style="color:var(--cyan);">Step 3.</strong> Delete all existing code. Paste the entire contents of <strong style="color:var(--white);">apps_script_backend.js</strong> (the second file you downloaded)
+            </div>
+            <div style="margin-bottom:14px;padding:12px;background:var(--deck);border-radius:8px;">
+              <strong style="color:var(--cyan);">Step 4.</strong> Click <strong style="color:var(--white);">Run → setupSpreadsheet</strong>. Allow permissions when asked. Check the Logs — copy your Spreadsheet ID shown there. Replace <code style="color:var(--gold);">YOUR_SPREADSHEET_ID_HERE</code> at the top of the script with it.
+            </div>
+            <div style="margin-bottom:14px;padding:12px;background:var(--deck);border-radius:8px;">
+              <strong style="color:var(--cyan);">Step 5.</strong> Click <strong style="color:var(--white);">Deploy → New Deployment → Web App</strong>. Set <em>Execute as: Me</em>, <em>Who has access: Anyone</em>. Click Deploy. Copy the Web App URL.
+            </div>
+            <div style="padding:12px;background:var(--deck);border-radius:8px;">
+              <strong style="color:var(--cyan);">Step 6.</strong> Paste that URL above and click <strong style="color:var(--white);">Connect</strong>. Done — your app now syncs to Google Sheets! 🎉
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:24px;">
+          <div class="card-title" style="margin-bottom:16px;">📱 Install on Android Phone</div>
+          <div style="font-size:13.5px;color:var(--haze);line-height:1.9;">
+            <p style="margin-bottom:10px;">Since this is a file, you have two options to use it on mobile:</p>
+            <div style="padding:12px;background:var(--deck);border-radius:8px;margin-bottom:10px;">
+              <strong style="color:var(--gold);">Option A — Host it free on GitHub Pages:</strong> Upload this HTML file to a GitHub repository, enable Pages, and open the URL on your phone in Chrome → tap menu → "Add to Home Screen". Works like an app!
+            </div>
+            <div style="padding:12px;background:var(--deck);border-radius:8px;">
+              <strong style="color:var(--gold);">Option B — Local only:</strong> Copy the HTML file to your phone, open with Chrome → "Add to Home Screen". Data stays on phone only (no sync) unless connected to Google Sheets.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-bg" id="detailModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="detailTitle">Shipment</div>
+      <button class="modal-x" onclick="closeModal('detailModal')">✕</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-danger btn-sm" id="dDelBtn">🗑 Delete</button>
+      <button class="btn btn-ghost btn-sm" id="dEditBtn">✏ Edit</button>
+      <button class="btn btn-ghost" onclick="closeModal('detailModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-bg" id="confirmModal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-head"><div class="modal-title">⚠ Confirm Delete</div><button class="modal-x" onclick="closeModal('confirmModal')">✕</button></div>
+    <div class="modal-body"><p style="color:var(--haze);line-height:1.7;">This will permanently delete the shipment from Google Sheets. This action cannot be undone.</p></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="btn btn-danger" id="confirmDelBtn">Delete Forever</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════
+let co = 'SN';
+let ships = [];
+let editId = null;
+let mFilter = 'all';
+let sFilter = 'all';
+let searchQ = '';
+let pendingDel = null;
+let SCRIPT_URL = localStorage.getItem('freightos_url') || '';
+let isConnected = false;
+
+// ════════════════════════════════════════════════════════════
+//  API LAYER  — Google Sheets via Apps Script
+// ════════════════════════════════════════════════════════════
+async function api(action, payload = {}) {
+  if (!SCRIPT_URL) throw new Error('No backend URL configured. Go to Settings.');
+  showLoad(true);
+  try {
+    const body = JSON.stringify({ action, company: co, ...payload });
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body,
+      headers: { 'Content-Type': 'text/plain' } // Apps Script needs this
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    return data;
+  } finally {
+    showLoad(false);
+  }
+}
+
+// Fallback: local storage when no backend
+function localKey() { return 'fos_' + co; }
+function localGet() { try { return JSON.parse(localStorage.getItem(localKey()) || '[]'); } catch{ return []; } }
+function localSet(arr) { localStorage.setItem(localKey(), JSON.stringify(arr)); }
+function genId() { return 'sh_' + Date.now() + '_' + Math.random().toString(36).substr(2,5); }
+function calcProfit(d) {
+  return (parseFloat(d.sell)||0) - (parseFloat(d.cost)||0) - (parseFloat(d.comm)||0) - (parseFloat(d.boe)||0) - (parseFloat(d.duty)||0) - (parseFloat(d.trt)||0);
+}
+
+// ── LOAD SHIPMENTS ──
+async function loadShipments() {
+  setSyncState('syncing', 'Syncing...');
+  try {
+    if (SCRIPT_URL) {
+      const res = await api('getShipments');
+      ships = res.shipments || [];
+      setSyncState('online', 'Synced · Google Sheets');
+      isConnected = true;
+    } else {
+      ships = localGet();
+      setSyncState('offline', 'Local only — no sync');
+    }
+  } catch(e) {
+    ships = localGet();
+    setSyncState('offline', 'Offline mode');
+    toast('Using local data: ' + e.message, 'err');
+  }
+  document.getElementById('pendBadge').textContent = ships.filter(s => s.status !== 'Paid').length;
+}
+
+async function addShip(d) {
+  if (SCRIPT_URL) {
+    const res = await api('addShipment', d);
+    ships.unshift(res.shipment);
+    localSet(ships);
+  } else {
+    const s = { id: genId(), profit: calcProfit(d), ...d, createdAt: new Date().toISOString() };
+    ships.unshift(s); localSet(ships);
+  }
+}
+
+async function updateShip(d) {
+  if (SCRIPT_URL) {
+    const res = await api('updateShipment', d);
+    ships = ships.map(s => s.id === d.id ? res.shipment : s);
+    localSet(ships);
+  } else {
+    const updated = { ...d, profit: calcProfit(d) };
+    ships = ships.map(s => s.id === d.id ? updated : s);
+    localSet(ships);
+  }
+}
+
+async function deleteShip(id) {
+  if (SCRIPT_URL) { await api('deleteShipment', { id }); }
+  ships = ships.filter(s => s.id !== id);
+  localSet(ships);
+}
+
+// ════════════════════════════════════════════════════════════
+//  NAV
+// ════════════════════════════════════════════════════════════
+const VIEW_TITLES = {
+  dashboard:'Dashboard', shipments:'Shipments', newjob:'New Shipment Job',
+  ledger:'Ledger & Accounts', invoices:'Invoices', suppliers:'Suppliers',
+  reports:'P&L Report', settings:'Settings & Setup'
+};
+
+async function go(name) {
+  closeSidebar();
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('topTitle').textContent = (VIEW_TITLES[name]||name) + ' · ' + (co === 'SN' ? 'SN Global' : 'Cadence');
+  if (name !== 'newjob') editId = null;
+  if (['dashboard','shipments','ledger','invoices','suppliers','reports'].includes(name)) {
+    await loadShipments();
+  }
+  if (name === 'dashboard')  renderDash();
+  if (name === 'shipments')  renderShips();
+  if (name === 'newjob')     { if (!editId) clearForm(); setToday(); }
+  if (name === 'ledger')     renderLedger();
+  if (name === 'invoices')   renderInvoices();
+  if (name === 'suppliers')  renderSuppliers();
+  if (name === 'reports')    renderReports();
+  if (name === 'settings')   loadSettings();
+}
+
+function switchCo(c) {
+  co = c;
+  document.getElementById('coSN').classList.toggle('active', c === 'SN');
+  document.getElementById('coCadence').classList.toggle('active', c === 'Cadence');
+  go('dashboard');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('mobOverlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mobOverlay').classList.remove('open');
+}
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showLoad(on) { document.getElementById('loadBar').classList.toggle('show', on); }
+function setSyncState(state, label) {
+  const dot = document.getElementById('syncDot');
+  dot.className = 'sync-dot ' + state;
+  document.getElementById('syncLabel').textContent = label;
+}
+
+// ════════════════════════════════════════════════════════════
+//  DASHBOARD
+// ════════════════════════════════════════════════════════════
+function renderDash() {
+  const rev  = ships.reduce((a,s)=>a+(+s.sell||0),0);
+  const cost = ships.reduce((a,s)=>a+(+s.cost||0),0);
+  const prof = ships.reduce((a,s)=>a+(+s.profit||0),0);
+  const comm = ships.reduce((a,s)=>a+(+s.comm||0),0);
+  const paid = ships.filter(s=>s.status==='Paid').length;
+  const unp  = ships.filter(s=>s.status!=='Paid').length;
+
+  document.getElementById('setupBanner').innerHTML = !SCRIPT_URL ? `
+    <div class="setup-banner" style="margin-bottom:20px;">
+      <div class="icon">⚠️</div>
+      <div>
+        <h3>Connect Google Sheets to sync across all your devices</h3>
+        <p>Right now data is saved locally on this device only. Go to Settings to connect your free Google Sheets backend — takes 15 minutes.</p>
+        <button class="btn btn-primary btn-sm" onclick="go('settings')" style="margin-top:4px;">Go to Settings →</button>
+      </div>
+    </div>` : '';
+
+  document.getElementById('kpiRow').innerHTML = `
+    <div class="kpi c"><div class="kpi-glow"></div><div class="kpi-label">Total Revenue</div><div class="kpi-val">AED ${fmt(rev)}</div><div class="kpi-sub">${ships.length} shipments total</div></div>
+    <div class="kpi g"><div class="kpi-glow"></div><div class="kpi-label">Net Profit</div><div class="kpi-val">AED ${fmt(prof)}</div><div class="kpi-sub">Margin ${rev?((prof/rev)*100).toFixed(1):0}%</div></div>
+    <div class="kpi o"><div class="kpi-glow"></div><div class="kpi-label">Total Cost</div><div class="kpi-val">AED ${fmt(cost)}</div><div class="kpi-sub">Commissions AED ${fmt(comm)}</div></div>
+    <div class="kpi r"><div class="kpi-glow"></div><div class="kpi-label">Unpaid / Pending</div><div class="kpi-val">${unp}</div><div class="kpi-sub">${paid} jobs fully paid</div></div>
+  `;
+
+  const recent = [...ships].sort((a,b)=>b.date?.localeCompare(a.date||'')).slice(0,8);
+  document.getElementById('recentTb').innerHTML = recent.map(s=>`
+    <tr onclick="viewDetail('${s.id}')" style="cursor:pointer;">
+      <td style="max-width:170px;overflow:hidden;text-overflow:ellipsis;">${s.route||'—'}</td>
+      <td>${modeBadge(s.mode)}</td><td>${stBadge(s.status)}</td>
+      <td class="${+s.profit>=0?'profit-pos':'profit-neg'}">${fmt(s.profit)}</td>
+    </tr>`).join('') || '<tr><td colspan="4" class="empty"><div class="empty-icon">📦</div><p>No shipments yet</p></td></tr>';
+
+  const outstanding = ships.filter(s=>s.status!=='Paid').slice(0,6);
+  document.getElementById('outstandingList').innerHTML = outstanding.length ? outstanding.map(s=>`
+    <div style="background:var(--hull);border:1px solid var(--rail);border-radius:10px;padding:13px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(0,229,255,0.3)'" onmouseout="this.style.borderColor='var(--rail)'" onclick="viewDetail('${s.id}')">
+      <div><div style="font-weight:600;font-size:13px;margin-bottom:3px;">${(s.route||'').length>40?(s.route||'').substr(0,40)+'…':s.route}</div><div style="font-size:11px;color:var(--fog);font-family:'JetBrains Mono',monospace;">${s.supplier||'—'} · ${s.date||'—'}</div></div>
+      <div style="text-align:right;flex-shrink:0;margin-left:12px;"><div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--gold);">AED ${fmt(s.sell)}</div>${stBadge(s.status)}</div>
+    </div>`).join('')
+  : '<div style="text-align:center;padding:30px;color:var(--green);font-size:14px;">✅ All payments received!</div>';
+
+  const sm = {};
+  ships.forEach(s=>{ const n=s.supplier||'?'; if(!sm[n])sm[n]={j:0,c:0,p:0}; sm[n].j++;sm[n].c+=+s.cost||0;sm[n].p+=+s.profit||0; });
+  document.getElementById('supSumTb').innerHTML = Object.entries(sm).sort((a,b)=>b[1].j-a[1].j).slice(0,10).map(([n,d])=>`
+    <tr><td style="font-weight:600;">${n}</td><td>${d.j}</td><td class="mono">AED ${fmt(d.c)}</td><td class="${d.p>=0?'profit-pos':'profit-neg'}">AED ${fmt(d.p)}</td></tr>`).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+//  SHIPMENTS TABLE
+// ════════════════════════════════════════════════════════════
+function renderShips() {
+  let list = [...ships];
+  if (mFilter !== 'all') list = list.filter(s=>s.mode===mFilter);
+  if (sFilter !== 'all') list = list.filter(s=> sFilter==='Paid'?s.status==='Paid': sFilter==='Unpaid'?s.status==='Unpaid':s.status==='Pending'||s.status==='Part Paid');
+  if (searchQ) { const q=searchQ.toLowerCase(); list=list.filter(s=>(s.route+s.supplier+s.customer+s.awb+s.invoice+'').toLowerCase().includes(q)); }
+  list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+
+  document.getElementById('shipsTb').innerHTML = list.length ? list.map(s=>`
+    <tr>
+      <td class="mono" style="color:var(--cyan);font-size:11px;">${s.invoice||'—'}</td>
+      <td style="font-size:11px;color:var(--fog);font-family:'JetBrains Mono',monospace;">${s.date||'—'}</td>
+      <td style="max-width:190px;overflow:hidden;text-overflow:ellipsis;">${s.route||'—'}</td>
+      <td>${modeBadge(s.mode)}</td>
+      <td class="mono">AED ${fmt(s.cost)}</td>
+      <td class="mono">AED ${fmt(s.sell)}</td>
+      <td class="mono">${s.comm?'AED '+fmt(s.comm):'—'}</td>
+      <td class="${+s.profit>=0?'profit-pos':'profit-neg'}">AED ${fmt(s.profit)}</td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:var(--haze);">${s.supplier||'—'}</td>
+      <td>${stBadge(s.status)}</td>
+      <td><div class="ibtns"><button class="ibtn" onclick="viewDetail('${s.id}')">👁</button><button class="ibtn" onclick="doEdit('${s.id}')">✏</button><button class="ibtn del" onclick="askDelete('${s.id}')">🗑</button></div></td>
+    </tr>`).join('')
+  : '<tr><td colspan="11" style="text-align:center;padding:50px;color:var(--steel);">No shipments found</td></tr>';
+}
+
+function fMode(el,v){ document.querySelectorAll('#modeFilters .ftab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); mFilter=v; renderShips(); }
+function fStatus(el,v){ document.querySelectorAll('#statusFilters .ftab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); sFilter=v; renderShips(); }
+function onSearch(v){ searchQ=v; if(document.getElementById('view-shipments').classList.contains('active')) renderShips(); }
+
+// ════════════════════════════════════════════════════════════
+//  FORM
+// ════════════════════════════════════════════════════════════
+function setToday() { if (!document.getElementById('fDate').value) document.getElementById('fDate').value = new Date().toISOString().split('T')[0]; }
+
+function liveCalc() {
+  const sell=parseFloat(document.getElementById('fSell').value)||0;
+  const cost=parseFloat(document.getElementById('fCost').value)||0;
+  const comm=parseFloat(document.getElementById('fComm').value)||0;
+  const boe =parseFloat(document.getElementById('fBOE').value)||0;
+  const duty=parseFloat(document.getElementById('fDuty').value)||0;
+  const trt =parseFloat(document.getElementById('fTRT').value)||0;
+  const tc = cost+boe+duty+trt;
+  const p = sell - tc - comm;
+  const m = sell > 0 ? ((p/sell)*100).toFixed(1) : '0.0';
+  const pp = document.getElementById('plProfit');
+  pp.textContent = 'AED ' + fmt(p);
+  pp.style.color = p >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('plMargin').textContent = m + '%';
+  document.getElementById('plCost').textContent = 'AED ' + fmt(tc);
+}
+
+function clearForm() {
+  editId = null;
+  ['fRoute','fAWB','fInvoice','fPOL','fPOD','fETD','fETA','fSupplier','fCustomer','fRemarks'].forEach(id=>{ document.getElementById(id).value=''; });
+  ['fCost','fSell','fComm','fBOE','fDuty','fTRT'].forEach(id=>{ document.getElementById(id).value=''; });
+  document.getElementById('fMode').value='AIR';
+  document.getElementById('fStatus').value='Pending';
+  document.getElementById('fDate').value='';
+  document.getElementById('formHeading').textContent='New Shipment Job';
+  document.getElementById('saveBtn').textContent='Save Shipment';
+  liveCalc();
+}
+
+function doEdit(id) {
+  const s = ships.find(x=>x.id===id);
+  if (!s) return;
+  editId = id;
+  document.getElementById('fRoute').value = s.route||'';
+  document.getElementById('fDate').value  = s.date||'';
+  document.getElementById('fMode').value  = s.mode||'AIR';
+  document.getElementById('fPOL').value   = s.pol||'';
+  document.getElementById('fPOD').value   = s.pod||'';
+  document.getElementById('fETD').value   = s.etd||'';
+  document.getElementById('fETA').value   = s.eta||'';
+  document.getElementById('fAWB').value   = s.awb||'';
+  document.getElementById('fInvoice').value = s.invoice||'';
+  document.getElementById('fSupplier').value = s.supplier||'';
+  document.getElementById('fCustomer').value = s.customer||'';
+  document.getElementById('fCost').value  = s.cost||'';
+  document.getElementById('fSell').value  = s.sell||'';
+  document.getElementById('fComm').value  = s.comm||'';
+  document.getElementById('fBOE').value   = s.boe||'';
+  document.getElementById('fDuty').value  = s.duty||'';
+  document.getElementById('fTRT').value   = s.trt||'';
+  document.getElementById('fStatus').value = s.status||'Pending';
+  document.getElementById('fRemarks').value = s.remarks||'';
+  document.getElementById('formHeading').textContent = 'Edit: ' + (s.route||'').substr(0,40);
+  document.getElementById('saveBtn').textContent = 'Update Shipment';
+  liveCalc();
+  go('newjob');
+}
+
+async function doSave() {
+  const route = document.getElementById('fRoute').value.trim();
+  if (!route) { toast('Please enter a route / description', 'err'); return; }
+  const d = {
+    id: editId||genId(),
+    date: document.getElementById('fDate').value || new Date().toISOString().split('T')[0],
+    route, mode: document.getElementById('fMode').value,
+    pol: document.getElementById('fPOL').value, pod: document.getElementById('fPOD').value,
+    etd: document.getElementById('fETD').value,  eta: document.getElementById('fETA').value,
+    awb: document.getElementById('fAWB').value, invoice: document.getElementById('fInvoice').value,
+    supplier: document.getElementById('fSupplier').value, customer: document.getElementById('fCustomer').value,
+    cost: parseFloat(document.getElementById('fCost').value)||0,
+    sell: parseFloat(document.getElementById('fSell').value)||0,
+    comm: parseFloat(document.getElementById('fComm').value)||0,
+    boe:  parseFloat(document.getElementById('fBOE').value)||0,
+    duty: parseFloat(document.getElementById('fDuty').value)||0,
+    trt:  parseFloat(document.getElementById('fTRT').value)||0,
+    status: document.getElementById('fStatus').value,
+    remarks: document.getElementById('fRemarks').value,
+  };
+  try {
+    if (editId) { await updateShip(d); toast('Shipment updated ✓'); }
+    else        { await addShip(d);    toast('Shipment saved ✓'); }
+    editId = null; clearForm(); go('shipments');
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+// ════════════════════════════════════════════════════════════
+//  DETAIL VIEW
+// ════════════════════════════════════════════════════════════
+function viewDetail(id) {
+  const s = ships.find(x=>x.id===id);
+  if (!s) return;
+  document.getElementById('detailTitle').textContent = s.route||'Shipment';
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-grid">
+      <div class="di"><div class="di-label">Date</div><div class="di-val">${s.date||'—'}</div></div>
+      <div class="di"><div class="di-label">Mode</div><div class="di-val">${modeBadge(s.mode)}</div></div>
+      <div class="di"><div class="di-label">Route</div><div class="di-val">${s.pol||'?'} → ${s.pod||'?'}</div></div>
+      <div class="di"><div class="di-label">AWB / BL</div><div class="di-val mono" style="font-size:12px;">${s.awb||'—'}</div></div>
+      <div class="di"><div class="di-label">Supplier / Agent</div><div class="di-val">${s.supplier||'—'}</div></div>
+      <div class="di"><div class="di-label">Customer</div><div class="di-val">${s.customer||'—'}</div></div>
+      <div class="di"><div class="di-label">ETD</div><div class="di-val">${s.etd||'—'}</div></div>
+      <div class="di"><div class="di-label">ETA</div><div class="di-val">${s.eta||'—'}</div></div>
+      <div class="di"><div class="di-label">Invoice #</div><div class="di-val mono">${s.invoice||'—'}</div></div>
+      <div class="di"><div class="di-label">Status</div><div class="di-val">${stBadge(s.status)}</div></div>
+    </div>
+    <div class="finance-strip">
+      <div class="fs-item"><div class="fs-l">COST PRICE</div><div class="fs-v" style="color:var(--gold)">AED ${fmt(s.cost)}</div></div>
+      <div class="fs-item"><div class="fs-l">SELLING PRICE</div><div class="fs-v" style="color:var(--cyan)">AED ${fmt(s.sell)}</div></div>
+      <div class="fs-item"><div class="fs-l">NET PROFIT</div><div class="fs-v" style="color:${+s.profit>=0?'var(--green)':'var(--red)'}">AED ${fmt(s.profit)}</div></div>
+      <div class="fs-item"><div class="fs-l">COMMISSION</div><div class="fs-v mono" style="font-size:14px;">AED ${fmt(s.comm)}</div></div>
+      <div class="fs-item"><div class="fs-l">BOE / DO</div><div class="fs-v mono" style="font-size:14px;">AED ${fmt(s.boe)}</div></div>
+      <div class="fs-item"><div class="fs-l">DUTY</div><div class="fs-v mono" style="font-size:14px;">AED ${fmt(s.duty)}</div></div>
+    </div>
+    ${s.remarks?`<div style="background:var(--deep);border:1px solid var(--rail);border-radius:10px;padding:14px;font-size:13px;color:var(--haze);line-height:1.6;">📝 ${s.remarks}</div>`:''}
+  `;
+  document.getElementById('dDelBtn').onclick = () => { closeModal('detailModal'); askDelete(id); };
+  document.getElementById('dEditBtn').onclick = () => { closeModal('detailModal'); doEdit(id); };
+  openModal('detailModal');
+}
+
+function askDelete(id) {
+  pendingDel = id;
+  document.getElementById('confirmDelBtn').onclick = async () => {
+    try { await deleteShip(id); closeModal('confirmModal'); toast('Deleted ✓'); renderShips(); document.getElementById('pendBadge').textContent = ships.filter(s=>s.status!=='Paid').length; }
+    catch(e) { toast('Delete failed: '+e.message,'err'); }
+  };
+  openModal('confirmModal');
+}
+
+// ════════════════════════════════════════════════════════════
+//  LEDGER
+// ════════════════════════════════════════════════════════════
+function renderLedger() { renderSupLedger(); renderCustLedger(); }
+function switchLedger(el, t) {
+  document.querySelectorAll('.tabs .tab').forEach(x=>x.classList.remove('active')); el.classList.add('active');
+  document.getElementById('supLedger').style.display = t==='supplier'?'block':'none';
+  document.getElementById('custLedger').style.display = t==='customer'?'block':'none';
+}
+
+function buildLedger(map, amtKey, color, icon) {
+  return Object.entries(map).sort((a,b)=>(b[1].total)-(a[1].total)).map(([name,d])=>`
+    <div class="ledger-item">
+      <div class="ledger-head-row" onclick="toggleL(this)">
+        <span class="ledger-name-txt">${icon} ${name}</span>
+        <div style="text-align:right;">
+          <div class="ledger-bal" style="color:${color}">AED ${fmt(d.total)}</div>
+          <div style="font-size:11px;color:${d.pend?'var(--gold)':'var(--green)'};">${d.jobs.length} jobs · ${d.pend?'AED '+fmt(d.pend)+' pending':'All settled ✓'}</div>
+        </div>
+      </div>
+      <div class="ledger-body-rows">
+        ${d.jobs.sort((a,b)=>b.date?.localeCompare(a.date||'')).map(s=>`
+          <div class="ledger-row">
+            <span class="l-date">${s.date||'—'}</span>
+            <span class="l-desc">${(s.route||'').length>50?(s.route||'').substr(0,50)+'…':s.route}</span>
+            <span class="l-amt" style="color:${color}">AED ${fmt(s[amtKey])}</span>
+            <span style="margin-left:8px;">${stBadge(s.status)}</span>
+          </div>`).join('')}
+        <div class="ledger-row l-total">
+          <span class="l-date"></span><span class="l-desc" style="color:var(--cloud);font-weight:700;">TOTAL</span>
+          <span class="l-amt" style="color:${color};font-size:14px;">AED ${fmt(d.total)}</span>
+        </div>
+      </div>
+    </div>`).join('') || '<div class="empty"><div class="empty-icon">📒</div><p>No data</p></div>';
+}
+
+function renderSupLedger() {
+  const m = {};
+  ships.forEach(s=>{ const n=s.supplier||'Unknown'; if(!m[n])m[n]={total:0,pend:0,jobs:[]}; m[n].total+=+s.cost||0; if(s.status!=='Paid')m[n].pend+=+s.cost||0; m[n].jobs.push(s); });
+  document.getElementById('supLedger').innerHTML = buildLedger(m,'cost','var(--gold)','🏭');
+}
+
+function renderCustLedger() {
+  const m = {};
+  ships.forEach(s=>{ const n=s.customer||'Unknown'; if(!m[n])m[n]={total:0,pend:0,jobs:[]}; m[n].total+=+s.sell||0; if(s.status!=='Paid')m[n].pend+=+s.sell||0; m[n].jobs.push(s); });
+  document.getElementById('custLedger').innerHTML = buildLedger(m,'sell','var(--cyan)','👤');
+}
+
+function toggleL(el) {
+  el.classList.toggle('open');
+  el.nextElementSibling.classList.toggle('open');
+}
+
+// ════════════════════════════════════════════════════════════
+//  INVOICES
+// ════════════════════════════════════════════════════════════
+function renderInvoices() {
+  const inv = ships.filter(s=>s.invoice);
+  const tot = inv.reduce((a,s)=>a+(+s.sell||0),0);
+  const rec = inv.filter(s=>s.status==='Paid').reduce((a,s)=>a+(+s.sell||0),0);
+  document.getElementById('invStats').innerHTML = `
+    <div class="stat-pill"><span class="sdot" style="background:var(--cyan)"></span>Total Invoiced: <strong>AED ${fmt(tot)}</strong></div>
+    <div class="stat-pill"><span class="sdot" style="background:var(--green)"></span>Received: <strong>AED ${fmt(rec)}</strong></div>
+    <div class="stat-pill"><span class="sdot" style="background:var(--gold)"></span>Outstanding: <strong>AED ${fmt(tot-rec)}</strong></div>
+  `;
+  document.getElementById('invTb').innerHTML = [...inv].sort((a,b)=>b.date?.localeCompare(a.date||'')).map(s=>`
+    <tr>
+      <td class="mono" style="color:var(--cyan);">${s.invoice}</td>
+      <td class="mono" style="font-size:11px;color:var(--fog);">${s.date||'—'}</td>
+      <td>${s.customer||'—'}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;font-size:12px;">${s.route||'—'}</td>
+      <td class="mono">AED ${fmt(s.sell)}</td>
+      <td>${stBadge(s.status)}</td>
+      <td><div class="ibtns"><button class="ibtn" onclick="viewDetail('${s.id}')">👁</button><button class="ibtn" onclick="doEdit('${s.id}')">✏</button></div></td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--steel);">No invoices yet</td></tr>';
+}
+
+// ════════════════════════════════════════════════════════════
+//  SUPPLIERS
+// ════════════════════════════════════════════════════════════
+function renderSuppliers() {
+  const m = {};
+  ships.forEach(s=>{ const n=s.supplier||'Unknown'; if(!m[n])m[n]={j:0,paid:0,unp:0,last:''}; m[n].j++;m[n].paid+=s.status==='Paid'?+s.cost||0:0;m[n].unp+=s.status!=='Paid'?+s.cost||0:0;if(!m[n].last||s.date>m[n].last)m[n].last=s.date; });
+  document.getElementById('supTb').innerHTML = Object.entries(m).sort((a,b)=>b[1].j-a[1].j).map(([n,d])=>`
+    <tr><td style="font-weight:700;">${n}</td><td>${d.j}</td><td class="mono">AED ${fmt(d.paid)}</td><td class="${d.unp?'profit-neg':'profit-pos'}">AED ${fmt(d.unp)}</td><td class="mono" style="font-size:11px;color:var(--fog);">${d.last||'—'}</td></tr>`).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+//  REPORTS
+// ════════════════════════════════════════════════════════════
+function renderReports() {
+  const rev=ships.reduce((a,s)=>a+(+s.sell||0),0);
+  const cost=ships.reduce((a,s)=>a+(+s.cost||0),0);
+  const prof=ships.reduce((a,s)=>a+(+s.profit||0),0);
+  const comm=ships.reduce((a,s)=>a+(+s.comm||0),0);
+  const duty=ships.reduce((a,s)=>a+(+s.duty||0),0);
+  const avg = ships.length ? prof/ships.length : 0;
+
+  document.getElementById('rptKPIs').innerHTML = `
+    <div class="kpi c"><div class="kpi-glow"></div><div class="kpi-label">Gross Revenue</div><div class="kpi-val">AED ${fmt(rev)}</div><div class="kpi-sub">${ships.length} jobs</div></div>
+    <div class="kpi o"><div class="kpi-glow"></div><div class="kpi-label">Total Cost</div><div class="kpi-val">AED ${fmt(cost)}</div><div class="kpi-sub">Comm AED ${fmt(comm)}</div></div>
+    <div class="kpi g"><div class="kpi-glow"></div><div class="kpi-label">Net Profit</div><div class="kpi-val">AED ${fmt(prof)}</div><div class="kpi-sub">Margin ${rev?((prof/rev)*100).toFixed(1):0}%</div></div>
+    <div class="kpi r"><div class="kpi-glow"></div><div class="kpi-label">Avg Profit/Job</div><div class="kpi-val">AED ${fmt(avg)}</div><div class="kpi-sub">Duty collected AED ${fmt(duty)}</div></div>
+  `;
+
+  document.getElementById('topProfTb').innerHTML = [...ships].filter(s=>s.profit>0).sort((a,b)=>b.profit-a.profit).slice(0,10).map(s=>`
+    <tr><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;font-size:12px;">${s.route||'—'}</td><td class="mono" style="font-size:11px;">AED ${fmt(s.sell)}</td><td class="profit-pos">AED ${fmt(s.profit)}</td><td style="font-size:12px;color:var(--gold);">${s.sell?((s.profit/s.sell)*100).toFixed(0):0}%</td></tr>`).join('');
+
+  const sm={};
+  ships.forEach(s=>{ const n=s.supplier||'?';if(!sm[n])sm[n]={j:0,r:0,p:0};sm[n].j++;sm[n].r+=+s.sell||0;sm[n].p+=+s.profit||0; });
+  document.getElementById('supPerfTb').innerHTML = Object.entries(sm).sort((a,b)=>b[1].r-a[1].r).slice(0,10).map(([n,d])=>`
+    <tr><td style="font-weight:700;font-size:12px;">${n}</td><td>${d.j}</td><td class="mono" style="font-size:11px;">AED ${fmt(d.r)}</td><td class="${d.p>=0?'profit-pos':'profit-neg'}" style="font-size:11px;">AED ${fmt(d.p)}</td></tr>`).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+//  SETTINGS
+// ════════════════════════════════════════════════════════════
+function loadSettings() {
+  document.getElementById('scriptUrlInput').value = SCRIPT_URL || '';
+}
+
+function saveScriptUrl() {
+  const url = document.getElementById('scriptUrlInput').value.trim();
+  if (!url) { toast('Please paste a URL first', 'err'); return; }
+  SCRIPT_URL = url;
+  localStorage.setItem('freightos_url', url);
+  toast('URL saved! Testing connection...', 'info');
+  testConnection();
+}
+
+async function testConnection() {
+  const url = document.getElementById('scriptUrlInput').value.trim() || SCRIPT_URL;
+  if (!url) { toast('No URL to test', 'err'); return; }
+  setSyncState('syncing', 'Testing...');
+  try {
+    const res = await fetch(url + '?action=ping&company=SN');
+    const data = await res.json();
+    if (data.ok) { setSyncState('online', 'Connected ✓'); toast('✅ Connected to Google Sheets!'); isConnected = true; }
+    else throw new Error(data.error || 'Unknown error');
+  } catch(e) {
+    setSyncState('offline', 'Connection failed');
+    toast('Connection failed: ' + e.message, 'err');
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════════
+function fmt(n) {
+  return (parseFloat(n)||0).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+function modeBadge(m) {
+  const map = { AIR:'b-air ✈ Air', SEA:'b-sea 🚢 Sea', COURIER:'b-courier 📦 Courier', LAND:'b-land 🚛 Land' };
+  const v = map[(m||'').toUpperCase()];
+  if (!v) return `<span class="badge">${m||'—'}</span>`;
+  const [cls,...rest] = v.split(' ');
+  return `<span class="badge ${cls}">${rest.join(' ')}</span>`;
+}
+function stBadge(s) {
+  const l = (s||'').toLowerCase();
+  if (l==='paid')    return '<span class="badge b-paid">● Paid</span>';
+  if (l==='unpaid')  return '<span class="badge b-unpaid">● Unpaid</span>';
+  return '<span class="badge b-pend">● Pending</span>';
+}
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = (type==='ok'?'✅ ':type==='err'?'❌ ':'ℹ️ ') + msg;
+  el.className = 'toast show ' + type;
+  setTimeout(()=>el.className='toast', 3500);
+}
+
+// ════════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════════
+(async () => {
+  ships = localGet(); // Show cached data instantly
+  document.getElementById('pendBadge').textContent = ships.filter(s=>s.status!=='Paid').length;
+  renderDash();
+  // Then try to sync
+  if (SCRIPT_URL) {
+    loadSettings();
+    try { await loadShipments(); renderDash(); }
+    catch(e) { console.warn('Boot sync failed:', e); }
+  } else {
+    setSyncState('offline', 'Setup needed');
+  }
+})();
+</script>
+</body>
+</html>
